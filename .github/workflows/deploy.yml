@@ -28,17 +28,22 @@ jobs:
             chmod 600 private_key.pem
             
             # SSH vào server để pull code và restart app
-            ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+                        ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+              sudo git config --global --add safe.directory /var/www/khanhtc_node_app
+              sudo chown -R ec2-user:ec2-user /var/www/khanhtc_node_app
+              sudo chmod -R 775 /var/www/khanhtc_node_app
+
               cd /var/www/khanhtc_node_app
-            
+
               # Pull code mới nhất
               git pull origin main
-            
+
               # Cài đặt dependencies
               npm install
-            
+
               # Restart ứng dụng với PM2
               pm2 restart khanhtc_app || pm2 start server.js --name khanhtc_app
               pm2 save
             EOF
+
 
