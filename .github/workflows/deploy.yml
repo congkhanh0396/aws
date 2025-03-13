@@ -23,9 +23,10 @@ jobs:
           HOST: ${{ secrets.EC2_HOST }}
           USER: "ec2-user"
         run: |
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+          ssh -i private_key.pem -o StrictHostKeyChecking=no  ${{ secrets.SSH_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             cd /var/www/khanhtc_node_app
-             # Pull code mới nhất
+          
+            # Pull code mới nhất
             git reset --hard
             git pull origin main
           
@@ -35,3 +36,4 @@ jobs:
             # Restart ứng dụng với PM2
             pm2 restart khanhtc_app || pm2 start server.js --name khanhtc_app
           EOF
+
