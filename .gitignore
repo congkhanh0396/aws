@@ -1,0 +1,36 @@
+# Bỏ thư mục node_modules
+node_modules/
+
+# Bỏ file môi trường
+.env
+.env.local
+.env.development
+.env.production
+
+# Bỏ cache & log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+*.gz
+pids/
+*.pid
+*.seed
+
+# Bỏ build files (nếu có)
+dist/
+build/
+
+.pm2/
+
+# Bỏ folder .idea
+.idea/
+
+# Bỏ SonarLint cache
+.idea/sonarlint/
+.idea/sonarlint/issuestore/
+
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
