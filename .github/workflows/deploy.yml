@@ -20,20 +20,25 @@ jobs:
 
       - name: Deploy to AWS EC2
         env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: "ec2-user"
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOST: ${{ secrets.EC2_HOST }}
+            USER: "ec2-user"
         run: |
-          ssh -i private_key.pem -o StrictHostKeyChecking=no  ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /var/www/khanhtc_node_app
-          
-            # Pull code mới nhất
-            git reset --hard
-            git pull origin main
-          
-            # Cài đặt dependencies
-            npm install
-          
-            # Restart ứng dụng với PM2
-            pm2 restart khanhtc_app || pm2 start server.js --name khanhtc_app
-          EOF
+            echo "$PRIVATE_KEY" > private_key.pem
+            chmod 600 private_key.pem
+            
+            # SSH vào server để pull code và restart app
+            ssh -tt private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+              cd /var/www/khanhtc_node_app
+            
+              # Pull code mới nhất
+              git pull origin main
+            
+              # Cài đặt dependencies
+              npm install
+            
+              # Restart ứng dụng với PM2
+              pm2 restart khanhtc_app || pm2 start server.js --name khanhtc_app
+              pm2 save
+            EOF
 
