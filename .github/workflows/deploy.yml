@@ -49,7 +49,7 @@ jobs:
 
             # Cài đặt & chạy ứng dụng với PM2
             npm install
-            pm2 restart khanhtc_node_app || pm2 start server.js --name khanhtc_node_app
+            pm2 restart khanhtc_app || pm2 start server.js --name khanhtc_app     
             pm2 save
             pm2 startup systemd
           EOF
