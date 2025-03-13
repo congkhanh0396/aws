@@ -24,32 +24,14 @@ jobs:
           USER: "ec2-user"
         run: |
           ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
-            # Cập nhật môi trường & cài đặt phần mềm
-            sudo yum -y update
-            curl -sL https://rpm.nodesource.com/setup_20.x | sudo bash -
-            sudo yum install -y nodejs git
-            sudo npm install -g pm2@latest
-
-            # Cấu hình thư mục ứng dụng
-            sudo mkdir -p /var/www/khanhtc_node_app
-            sudo chown -R ec2-user:ec2-user /var/www/khanhtc_node_app
-            sudo chmod -R 755 /var/www/khanhtc_node_app
-
-            # Xóa code cũ & clone repo mới
             cd /var/www/khanhtc_node_app
-            if [ -d ".git" ]; then
-              git reset --hard
-              git pull origin main
-            else
-              git clone ${{ secrets.GIT_REPO_URL }} .
-            fi
-
-            # Đánh dấu thư mục Git là an toàn
-            git config --global --add safe.directory /var/www/khanhtc_node_app
-
-            # Cài đặt & chạy ứng dụng với PM2
+             # Pull code mới nhất
+            git reset --hard
+            git pull origin main
+          
+            # Cài đặt dependencies
             npm install
-            pm2 restart khanhtc_app || pm2 start server.js --name khanhtc_app     
-            pm2 save
-            pm2 startup systemd
+          
+            # Restart ứng dụng với PM2
+            pm2 restart khanhtc_app || pm2 start server.js --name khanhtc_app
           EOF
