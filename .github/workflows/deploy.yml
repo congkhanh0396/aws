@@ -38,7 +38,7 @@ jobs:
               # Pull code mới nhất
               git pull origin main
 
-              # Cài đặt dependencies
+              # Cài đặt dependencies 1
               npm install
 
               # Restart ứng dụng với PM2
