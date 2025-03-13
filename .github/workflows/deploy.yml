@@ -28,7 +28,7 @@ jobs:
             chmod 600 private_key.pem
             
             # SSH vào server để pull code và restart app
-            ssh -tt private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+            ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
               cd /var/www/khanhtc_node_app
             
               # Pull code mới nhất
