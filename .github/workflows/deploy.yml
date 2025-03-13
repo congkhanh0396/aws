@@ -1,9 +1,9 @@
-name: Deploy to AWS EC2
+name: Deploy Node.js App to AWS EC2
 
 on:
   push:
     branches:
-      - main  # Chạy khi push vào nhánh main
+      - main  # Chạy workflow khi push lên branch main
 
 jobs:
   deploy:
@@ -13,34 +13,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js (nếu deploy app Node.js)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
+      - name: Set up SSH
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
 
       - name: Deploy to AWS EC2
         env:
-          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
           USER: "ec2-user"
         run: |
-          echo "$PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          
-          # SSH vào server để pull code và restart app
           ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+            # Cập nhật môi trường & cài đặt phần mềm
+            sudo yum -y update
+            curl -sL https://rpm.nodesource.com/setup_20.x | sudo bash -
+            sudo yum install -y nodejs git
+            sudo npm install -g pm2@latest
+
+            # Cấu hình thư mục ứng dụng
+            sudo mkdir -p /var/www/khanhtc_node_app
+            sudo chown -R ec2-user:ec2-user /var/www/khanhtc_node_app
+            sudo chmod -R 755 /var/www/khanhtc_node_app
+
+            # Xóa code cũ & clone repo mới
             cd /var/www/khanhtc_node_app
-          
-            # Pull code mới nhất
-            git pull origin main
-          
-            # Cài đặt dependencies
+            if [ -d ".git" ]; then
+              git reset --hard
+              git pull origin main
+            else
+              git clone ${{ secrets.GIT_REPO_URL }} .
+            fi
+
+            # Đánh dấu thư mục Git là an toàn
+            git config --global --add safe.directory /var/www/khanhtc_node_app
+
+            # Cài đặt & chạy ứng dụng với PM2
             npm install
-          
-            # Restart ứng dụng với PM2
             pm2 restart khanhtc_node_app || pm2 start server.js --name khanhtc_node_app
             pm2 save
+            pm2 startup systemd
           EOF
