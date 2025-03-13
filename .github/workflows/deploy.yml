@@ -20,30 +20,28 @@ jobs:
 
       - name: Deploy to AWS EC2
         env:
-            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-            HOST: ${{ secrets.EC2_HOST }}
-            USER: "ec2-user"
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: "ec2-user"
         run: |
-            echo "$PRIVATE_KEY" > private_key.pem
-            chmod 600 private_key.pem
-            
-            # SSH vào server để pull code và restart app
-                        ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
-              sudo git config --global --add safe.directory /var/www/khanhtc_node_app
-              sudo chown -R ec2-user:ec2-user /var/www/khanhtc_node_app
-              sudo chmod -R 775 /var/www/khanhtc_node_app
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+            # Cấu hình Git
+            sudo git config --global --add safe.directory /var/www/khanhtc_node_app
 
-              cd /var/www/khanhtc_node_app
+            # Set quyền cho thư mục dự án
+            sudo chown -R ec2-user:ec2-user /var/www/khanhtc_node_app
+            sudo chmod -R 775 /var/www/khanhtc_node_app
 
-              # Pull code mới nhất
-              git pull origin main
+            # Di chuyển vào thư mục dự án
+            cd /var/www/khanhtc_node_app
 
-              # Cài đặt dependencies 1
-              npm install
+            # Pull code mới nhất
+            git reset --hard  # Xóa local changes nếu có
+            git pull origin main
 
-              # Restart ứng dụng với PM2
-              pm2 restart khanhtc_app || pm2 start server.js --name khanhtc_app
-              pm2 save
-            EOF
+            # Cài đặt dependencies
+            npm install --production
 
-
+            # Restart ứng dụng với PM2
+            pm2 reload khanhtc_app || pm2 start server.js --name khanhtc_app
+            pm2 save
+          EOF
