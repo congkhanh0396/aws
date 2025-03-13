@@ -3,9 +3,9 @@ const app = express()
 const port = 3000
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Hello World!, server is running by express js')
 })
 
-server.listen(port, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${port}/`);
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
 });
